@@ -108,7 +108,7 @@
         }
     </style>
 </head>
-<body class="bg-gray-950 min-h-screen w-full relative text-white">
+<body class="bg-gray-950 h-screen w-full overflow-hidden fixed inset-0 text-white">
 
     <!-- 
       BACKGROUND LAYER 
@@ -148,14 +148,14 @@
         </div>
     </div>
 
-    <main class="relative z-10 w-full flex justify-center py-0 md:py-12">
+    <main class="relative z-10 w-full h-screen overflow-hidden flex justify-center items-center">
         
         <!-- 
           MAIN IMAGE CONTAINER
           - 'w-full md:max-w-2xl': Full width on phone, restricted width on desktop (approx 672px).
           - 'h-[100dvh]': locked to viewport height so the video never scrolls.
         -->
-        <div class="relative w-full md:max-w-2xl h-[100dvh] max-h-[100dvh] overflow-hidden group">
+        <div class="relative w-full md:max-w-2xl h-full max-h-screen overflow-hidden group">
             <video 
                 id="main-image"
                 src="video.mp4" 
