@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>AOG Treasure Hunt 2026</title>
+    <meta name="description" content="AOG Treasure Hunt 2026.">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="AOG Treasure Hunt 2026">
+    <meta property="og:description" content="AOG Treasure Hunt 2026.">
+    <meta name="theme-color" content="#776537">
+    <style>
+        html, body { margin: 0; height: 100%; overflow: hidden; background: #0b0614; }
+        /* desktop: blurred poster behind the phone-shaped frame */
+        body::before {
+            content: ""; position: fixed; inset: -10%;
+            background: url(gyro/bg.webp) center / cover;
+            filter: blur(40px) brightness(.55);
+        }
+        .frame {
+            position: fixed; top: 0; bottom: 0; left: 50%;
+            width: min(100vw, calc(100vh * 9 / 16));
+            width: min(100vw, calc(100dvh * 9 / 16));
+            transform: translateX(-50%);
+            overflow: hidden;
+            background: #776537; /* exact top-row colour of the poster, fills tall phones */
+            opacity: 0; transition: opacity .6s;
+        }
+        .ready .frame { opacity: 1; }
+
+        /* everything below lives in 1080x1920 poster pixels, scaled by JS */
+        .fg { position: absolute; left: 0; top: 0; width: 1080px; height: 1920px; transform-origin: 0 0; perspective: 1600px; perspective-origin: 540px 960px; }
+        .fg img, .L { position: absolute; display: block; will-change: transform; }
+        .bgimg { left: 0; top: 0; width: 1080px; height: 1920px; }
+        .bob { position: absolute; inset: 0; transform-style: preserve-3d; }
+
+        .hg { left: 7px; top: 437px; width: 1070px; height: 474px; transform-style: preserve-3d; transform-origin: 535px 236px; }
+        .face { position: absolute; inset: 0; backface-visibility: hidden; -webkit-backface-visibility: hidden; }
+        .face.back { transform: translateZ(-40px) rotateY(180deg) scaleX(-1); }
+        .face img { position: absolute; left: 0; top: 0; }
+        .face .txt { left: 265px; top: 368px; }
+        .slab, .shine {
+            position: absolute; left: 0; top: 0; width: 1070px; height: 359px;
+            -webkit-mask: url(gyro/shape.webp) 0 0 / 100% 100%; mask: url(gyro/shape.webp) 0 0 / 100% 100%;
+        }
+        .slab { background: #1c038a; }
+        .shine {
+            background: linear-gradient(105deg, transparent 42%, rgba(255,255,255,.6) 50%, transparent 58%) no-repeat;
+            background-size: 300% 100%;
+            animation: shine 5s ease-in-out infinite;
+        }
+        @keyframes shine {
+            0% { background-position: 110% 0; }
+            30%, 100% { background-position: -10% 0; }
+        }
+
+        .stars { left: 0; top: 0; width: 1080px; height: 1920px; pointer-events: none; }
+        .star {
+            position: absolute; border-radius: 50%; opacity: 0;
+            background: radial-gradient(circle, #fff 0, rgba(255,255,255,.9) 22%, rgba(255,255,255,0) 68%);
+            animation: tw var(--d) ease-in-out var(--dl) infinite;
+        }
+        @keyframes tw {
+            0%, 100% { opacity: 0; transform: scale(.4); }
+            50% { opacity: var(--o); transform: scale(1); }
+        }
+
+        #tilt {
+            position: fixed; left: 50%; bottom: calc(18px + env(safe-area-inset-bottom));
+            transform: translateX(-50%); z-index: 5;
+            font: 700 11px/1 ui-monospace, Menlo, monospace; letter-spacing: .15em; color: #fff;
+            background: rgba(25, 12, 70, .85); border: 2px solid #e9b24a; border-radius: 0;
+            padding: 10px 14px; box-shadow: 0 0 0 2px rgba(25,12,70,.85), 0 0 18px rgba(233,178,74,.45);
+            cursor: pointer;
+        }
+        #tilt[hidden] { display: none; }
+    </style>
+</head>
+<body>
+    <div class="frame" id="frame">
+        <div class="fg" id="fg">
+            <img class="bgimg" id="bg" src="gyro/bg.webp" alt="">
+            <div class="bob" id="bob">
+                <img id="top" src="gyro/top.webp" style="left:237px;top:140px" alt="The game is on. Are you ready?">
+                <img id="b1" src="gyro/b1.webp" style="left:63px;top:909px" alt="Batch 1: 2/10/2026, 18.30 WIB, Pakuwon City Mall 3 Lt. P8, Jl. Kejawan Putih Mutiara 17, Surabaya">
+                <img id="b2" src="gyro/b2.webp" style="left:575px;top:921px" alt="Batch 2: 9/10/2026, 18.30 WIB, Pakuwon Mall Lt. Rooftop 2, Jl. Puncak Indah Lontar 2, Surabaya">
+                <img id="reg" src="gyro/reg.webp" style="left:319px;top:1320px" alt="Open registration: 16-27 September 2026 (via CG fun leaders and Treasure Hunt booth)">
+                <div class="L hg" id="hg">
+                    <div class="face front">
+                        <img src="gyro/heading.webp" alt="Treasure Hunt 5.0 — Into the game world">
+                        <img class="txt" src="gyro/text.webp" alt="">
+                        <div class="shine"></div>
+                    </div>
+                    <!-- extruded blue edge, visible while the heading spins -->
+                    <div class="slab" style="transform:translateZ(-4px)"></div>
+                    <div class="slab" style="transform:translateZ(-8px)"></div>
+                    <div class="slab" style="transform:translateZ(-12px)"></div>
+                    <div class="slab" style="transform:translateZ(-16px)"></div>
+                    <div class="slab" style="transform:translateZ(-20px)"></div>
+                    <div class="slab" style="transform:translateZ(-24px)"></div>
+                    <div class="slab" style="transform:translateZ(-28px)"></div>
+                    <div class="slab" style="transform:translateZ(-32px)"></div>
+                    <div class="slab" style="transform:translateZ(-36px)"></div>
+                    <div class="face back">
+                        <img src="gyro/heading.webp" alt="">
+                        <img class="txt" src="gyro/text.webp" alt="">
+                    </div>
+                </div>
+            </div>
+            <div class="L stars" id="stars"></div>
+        </div>
+    </div>
+    <button id="tilt" hidden>TAP TO ENABLE TILT</button>
+
+    <script>
+    (function () {
+        var $ = function (id) { return document.getElementById(id); };
+        var frame = $('frame'), fg = $('fg'), bob = $('bob'), hg = $('hg');
+        var txts = document.querySelectorAll('.txt');
+
+        // ---- timeline measured frame-by-frame from video-full.mp4 (30fps, 341-frame loop) ----
+        var LOOP = 341;
+        // vertical bob of the text group, sampled every 3 frames across the whole loop (the 3 cycles differ by a few px)
+        var BOB = [201,199,192,182,169,155,140,123,106,89,72,56,40,25,12,0,-10,-17,-21,-21,-18,-10,0,13,27,42,58,74,91,108,124,139,153,166,178,187,195,200,201,199,192,182,169,155,140,123,106,89,72,56,40,25,12,0,-10,-17,-21,-21,-18,-10,1,14,28,44,60,77,94,110,127,142,156,169,181,190,197,200,201,197,189,178,165,150,134,118,100,83,67,50,35,20,8,-3,-12,-18,-22,-21,-15,-7,5,18,33,49,66,83,99,116,132,147,161,173,184,192,198,201];
+        // 360° heading spin: starts at frames 48 and 187, lasts 52 frames, eased like the video
+        var SPIN_T = [0,.135,.23,.31,.365,.40,.44,.54,.615,.69,.77,.846,1];
+        var SPIN_A = [0,14,35,62,90,118,180,270,311,332,344,352,360];
+        // right edge (px in text.webp) of each of the 16 letters of INTO THE GAME WORLD
+        var ENDS = [35,72,99,130,166,195,219,262,293,329,353,409,438,465,489,516];
+        var TEXT_W = 543;
+        var DIM = [[21,25],[27,30],[147,150],[153,156],[241,244],[247,250]];
+
+        function bobAt(f) {
+            var p = f / 3, i = Math.floor(p), t = p - i;
+            return BOB[i] + (BOB[(i + 1) % BOB.length] - BOB[i]) * t;
+        }
+        function spinAt(f) {
+            var starts = [48, 187];
+            for (var s = 0; s < 2; s++) {
+                var t = (f - starts[s]) / 52;
+                if (t > 0 && t < 1) {
+                    var i = 1; while (SPIN_T[i] < t) i++;
+                    var u = (t - SPIN_T[i - 1]) / (SPIN_T[i] - SPIN_T[i - 1]);
+                    return -(SPIN_A[i - 1] + (SPIN_A[i] - SPIN_A[i - 1]) * u);
+                }
+            }
+            return 0;
+        }
+        function lettersAt(f) {
+            if (f < 17) return Math.min(16, Math.floor(f));
+            if (f < 97) return 16;
+            if (f < 107) return Math.round(16 * (107 - f) / 10); // backspace
+            if (f < 128) return 0;
+            if (f < 145) return Math.min(16, Math.floor(f - 128));
+            if (f < 311) return 16;
+            if (f < 321) return Math.round(16 * (321 - f) / 10);
+            return 0;
+        }
+
+        // ---- layout: poster fills the width, anchored to the bottom; extra height shows the flat top colour ----
+        var s = 1;
+        function layout() {
+            var fw = frame.clientWidth, fh = frame.clientHeight;
+            var contain = Math.min(fw / 1080, fh / 1920), cover = Math.max(fw / 1080, fh / 1920);
+            // up to 5% zoom past fit (side crop ~26 poster px, heading starts at 58) to shrink the empty top band on tall phones
+            s = Math.min(cover, contain * 1.05);
+            var left = (fw - 1080 * s) / 2, top = fh - 1920 * s;
+            fg.style.transform = 'translate(' + left + 'px,' + top + 'px) scale(' + s + ')';
+        }
+        window.addEventListener('resize', layout);
+        layout();
+
+        // ---- twinkling stars / bokeh like the video ----
+        var stars = $('stars');
+        for (var n = 0; n < 26; n++) {
+            var big = n < 8, el = document.createElement('i'), size = big ? 30 + Math.random() * 30 : 6 + Math.random() * 8;
+            el.className = 'star';
+            el.style.cssText = 'left:' + (Math.random() * 1040) + 'px;top:' + (80 + Math.random() * 1500) + 'px;width:' + size + 'px;height:' + size +
+                'px;--d:' + (2.5 + Math.random() * 3).toFixed(2) + 's;--dl:-' + (Math.random() * 5).toFixed(2) + 's;--o:' + (big ? .85 : 1);
+            stars.appendChild(el);
+        }
+
+        // ---- tilt input: gyro on phones, mouse on desktop ----
+        var tx = 0, ty = 0, cx = 0, cy = 0, base = null;
+        var clamp = function (v) { return Math.max(-1, Math.min(1, v)); };
+        function onOrient(e) {
+            if (e.beta == null) return;
+            if (!base) base = { b: e.beta, g: e.gamma };
+            // ponytail: neutral pose slowly follows how the phone is held (~8s), so the effect re-centres itself
+            base.b += (e.beta - base.b) * 0.002;
+            base.g += (e.gamma - base.g) * 0.002;
+            tx = clamp((e.gamma - base.g) / 20);
+            ty = clamp((e.beta - base.b) / 20);
+        }
+        var tiltBtn = $('tilt');
+        if (window.DeviceOrientationEvent && typeof DeviceOrientationEvent.requestPermission === 'function') {
+            tiltBtn.hidden = false; // iOS needs a tap before it will share motion data
+            tiltBtn.onclick = function () {
+                DeviceOrientationEvent.requestPermission().then(function (state) {
+                    if (state === 'granted') window.addEventListener('deviceorientation', onOrient);
+                }).catch(function () {}).then(function () { tiltBtn.hidden = true; });
+            };
+        } else {
+            window.addEventListener('deviceorientation', onOrient);
+        }
+        window.addEventListener('pointermove', function (e) {
+            if (e.pointerType !== 'mouse') return;
+            tx = clamp((e.clientX / innerWidth - .5) * 2);
+            ty = clamp((e.clientY / innerHeight - .5) * 2);
+        });
+
+        // ---- render ----
+        var MAX = 36; // poster px of travel at depth 1
+        var layers = [[$('bg'), .2, 1.015], [$('top'), .55], [$('b1'), .7], [$('b2'), .7], [$('reg'), .8], [stars, 1.2]];
+        function render(f) {
+            cx += (tx - cx) * .08; cy += (ty - cy) * .08;
+            for (var i = 0; i < layers.length; i++) {
+                var L = layers[i], d = L[1] * MAX;
+                L[0].style.transform = 'translate3d(' + (cx * d).toFixed(2) + 'px,' + (cy * d).toFixed(2) + 'px,0)' + (L[2] ? ' scale(' + L[2] + ')' : '');
+            }
+            bob.style.transform = 'translateY(' + bobAt(f).toFixed(2) + 'px)';
+            hg.style.transform = 'translate3d(' + (cx * MAX).toFixed(2) + 'px,' + (cy * MAX).toFixed(2) + 'px,0) rotateX(' + (-cy * 10).toFixed(2) + 'deg) rotateY(' + (spinAt(f) + cx * 14).toFixed(2) + 'deg)';
+            var k = lettersAt(f), x = k ? ENDS[k - 1] + 3 : 0, dim = false;
+            for (var j = 0; j < DIM.length; j++) if (f >= DIM[j][0] && f < DIM[j][1]) dim = true;
+            for (var t = 0; t < txts.length; t++) {
+                txts[t].style.clipPath = 'inset(0 ' + (TEXT_W - x) + 'px 0 0)';
+                txts[t].style.opacity = dim ? .35 : 1;
+            }
+        }
+
+        var reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+        var imgs = [].slice.call(document.images);
+        var started = false;
+        function start() {
+            if (started) return;
+            started = true;
+            document.body.classList.add('ready');
+            if (reduced) { render(45); return; }
+            var t0 = performance.now();
+            (function loop(now) {
+                render(((now - t0) / 1000 * 30) % LOOP);
+                requestAnimationFrame(loop);
+            })(t0);
+        }
+        Promise.all(imgs.map(function (im) { return im.decode ? im.decode().catch(function () {}) : 0; })).then(start);
+        setTimeout(start, 4000); // never stay hidden if a decode stalls
+
+        window.__render = render; // used by the screenshot check
+    })();
+    </script>
+</body>
+</html>
