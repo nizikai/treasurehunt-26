@@ -131,37 +131,42 @@
       - Removed 'h-screen' to allow scrolling.
       - 'py-0 md:py-12': No padding on mobile (full bleed), spacing on desktop.
     -->
+    <!-- 
+      FULLSCREEN LOADER LAYER
+      Appears first, centered both axes, covers everything until video is ready.
+    -->
+    <div id="loader" class="fixed inset-0 z-50 flex items-center justify-center bg-black">
+        <div class="flex flex-col items-center gap-4">
+            <div class="pixel-chest">
+                <div class="pixel-chest-lid"></div>
+                <div class="pixel-chest-body"></div>
+                <div class="pixel-sparkle pixel-sparkle-1"></div>
+                <div class="pixel-sparkle pixel-sparkle-2"></div>
+                <div class="pixel-sparkle pixel-sparkle-3"></div>
+            </div>
+            <p class="text-yellow-500 text-xs tracking-widest animate-pulse font-mono">LOADING TREASURE…</p>
+        </div>
+    </div>
+
     <main class="relative z-10 w-full flex justify-center py-0 md:py-12">
         
         <!-- 
           MAIN IMAGE CONTAINER
           - 'w-full md:max-w-2xl': Full width on phone, restricted width on desktop (approx 672px).
-          - This perfectly mimics a mobile view on a desktop screen.
+          - 'h-[100dvh]': locked to viewport height so the video never scrolls.
         -->
-        <div class="relative w-full md:max-w-2xl group">
+        <div class="relative w-full md:max-w-2xl h-[100dvh] max-h-[100dvh] overflow-hidden group">
             <video 
                 id="main-image"
                 src="video.mp4" 
-                autoplay muted loop playsinline preload="auto"
-                class="animate-fade-in w-full h-auto object-contain shadow-[0_35px_60px_-15px_rgba(0,0,0,0.6)] rounded-none md:rounded-2xl border-0 md:border md:border-white/10"
+                muted loop playsinline preload="auto"
+                class="w-full h-full object-cover opacity-0 transition-opacity duration-700 shadow-[0_35px_60px_-15px_rgba(0,0,0,0.6)] rounded-none md:rounded-2xl border-0 md:border md:border-white/10"
                 onerror="handleImageError(this)"
             ></video>
 
-            <!-- Loading Spinner: pixel-art style, shown until the video has enough data to play -->
-            <div id="loader" class="absolute inset-0 flex items-center justify-center bg-black z-20">
-                <div class="flex flex-col items-center gap-4">
-                    <!-- Pixel-art treasure chest loader -->
-                    <div class="pixel-chest">
-                        <div class="pixel-chest-lid"></div>
-                        <div class="pixel-chest-body"></div>
-                        <div class="pixel-sparkle pixel-sparkle-1"></div>
-                        <div class="pixel-sparkle pixel-sparkle-2"></div>
-                        <div class="pixel-sparkle pixel-sparkle-3"></div>
-                    </div>
-                    <p class="text-yellow-500 text-xs tracking-widest animate-pulse font-mono">LOADING TREASURE…</p>
-                </div>
-            </div>
-            
+            <!-- Loading Spinner: shown in the fullscreen #loader overlay above -->
+            <div id="loader-inline" class="hidden"></div>
+
             <!-- Error Message Display -->
             <div id="error-msg" class="hidden absolute inset-0 h-[50vh] flex items-center justify-center bg-gray-900/90 rounded-xl border border-red-500/50 p-6 text-center mx-4 mt-20">
                 <div>
@@ -183,16 +188,24 @@
             document.getElementById('loader').style.display = 'none';
         }
 
-        // Hide the loader once the main video can actually start playing
+        // Show the video only once it's actually ready to play, then hide the loader.
         (function() {
             var main = document.getElementById('main-image');
             var loader = document.getElementById('loader');
-            function hideLoader() { if (loader) loader.style.display = 'none'; }
-            main.addEventListener('canplay', hideLoader);
-            main.addEventListener('loadeddata', hideLoader);
-            main.addEventListener('error', hideLoader);
+            var revealed = false;
+            function reveal() {
+                if (revealed) return;
+                revealed = true;
+                main.classList.remove('opacity-0');
+                main.play().catch(function(){ /* will retry on first interaction */ });
+                if (loader) loader.style.display = 'none';
+            }
+            main.addEventListener('canplaythrough', reveal);
+            main.addEventListener('canplay', reveal);
+            main.addEventListener('loadeddata', reveal);
+            main.addEventListener('error', function(){ if (loader) loader.style.display = 'none'; });
             // Safety: never show the spinner forever
-            setTimeout(hideLoader, 8000);
+            setTimeout(reveal, 8000);
         })();
 
         // Detect slow connections and skip the background video to save bandwidth
