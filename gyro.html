@@ -65,15 +65,74 @@
             50% { opacity: var(--o); transform: scale(1); }
         }
 
-        #tilt {
-            position: fixed; left: 50%; bottom: calc(18px + env(safe-area-inset-bottom));
-            transform: translateX(-50%); z-index: 5;
-            font: 700 11px/1 ui-monospace, Menlo, monospace; letter-spacing: .15em; color: #fff;
-            background: rgba(25, 12, 70, .85); border: 2px solid #e9b24a; border-radius: 0;
-            padding: 10px 14px; box-shadow: 0 0 0 2px rgba(25,12,70,.85), 0 0 18px rgba(233,178,74,.45);
-            cursor: pointer;
+        /* tap-to-enter start screen; the tap is what lets iOS ask for motion permission */
+        #loader {
+            position: fixed; inset: 0; z-index: 50; width: 100%; margin: 0; padding: 0; border: 0;
+            display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px;
+            background: #000; color: inherit; cursor: pointer; transition: opacity .5s;
+            -webkit-tap-highlight-color: transparent;
         }
-        #tilt[hidden] { display: none; }
+        #loader:disabled { cursor: default; }
+        #loader.gone { opacity: 0; pointer-events: none; }
+        #loader span { display: block; }
+        #loader-msg {
+            color: #eab308; font: 12px/16px ui-monospace, SFMono-Regular, Menlo, monospace; letter-spacing: .1em;
+            animation: pulse 2s cubic-bezier(.4, 0, .6, 1) infinite;
+        }
+        @keyframes pulse { 50% { opacity: .5; } }
+
+        /* Pixel-art treasure chest loader (same as index.html) */
+        .pixel-chest {
+            position: relative;
+            width: 64px;
+            height: 64px;
+            image-rendering: pixelated;
+            image-rendering: crisp-edges;
+        }
+        .pixel-chest-lid,
+        .pixel-chest-body {
+            position: absolute;
+            left: 0;
+            width: 4px;
+            height: 4px;
+            background: transparent;
+            box-shadow:
+                /* LID (top arc, gold/brown) */
+                8px 4px 0 #b8860b, 12px 4px 0 #b8860b, 16px 4px 0 #b8860b, 20px 4px 0 #b8860b, 24px 4px 0 #b8860b, 28px 4px 0 #b8860b, 32px 4px 0 #b8860b, 36px 4px 0 #b8860b, 40px 4px 0 #b8860b, 44px 4px 0 #b8860b, 48px 4px 0 #b8860b,
+                4px 8px 0 #8b6508, 8px 8px 0 #ffd700, 12px 8px 0 #ffd700, 16px 8px 0 #ffd700, 20px 8px 0 #ffd700, 24px 8px 0 #ffd700, 28px 8px 0 #ffd700, 32px 8px 0 #ffd700, 36px 8px 0 #ffd700, 40px 8px 0 #ffd700, 44px 8px 0 #ffd700, 48px 8px 0 #ffd700, 52px 8px 0 #8b6508;
+        }
+        .pixel-chest-body {
+            top: 28px;
+            box-shadow:
+                /* BODY (wood with gold band) */
+                4px 0 0 #5a3a1a, 8px 0 0 #8b5a2b, 12px 0 0 #8b5a2b, 16px 0 0 #8b5a2b, 20px 0 0 #8b5a2b, 24px 0 0 #8b5a2b, 28px 0 0 #8b5a2b, 32px 0 0 #8b5a2b, 36px 0 0 #8b5a2b, 40px 0 0 #8b5a2b, 44px 0 0 #8b5a2b, 48px 0 0 #8b5a2b, 52px 0 0 #5a3a1a,
+                4px 4px 0 #5a3a1a, 8px 4px 0 #ffd700, 12px 4px 0 #ffd700, 16px 4px 0 #ffd700, 20px 4px 0 #ffd700, 24px 4px 0 #ffd700, 28px 4px 0 #ffd700, 32px 4px 0 #ffd700, 36px 4px 0 #ffd700, 40px 4px 0 #ffd700, 44px 4px 0 #ffd700, 48px 4px 0 #ffd700, 52px 4px 0 #5a3a1a,
+                4px 8px 0 #5a3a1a, 8px 8px 0 #8b5a2b, 48px 8px 0 #8b5a2b, 52px 8px 0 #5a3a1a,
+                4px 12px 0 #5a3a1a, 8px 12px 0 #8b5a2b, 48px 12px 0 #8b5a2b, 52px 12px 0 #5a3a1a;
+        }
+        .pixel-chest-lid {
+            top: 8px;
+            animation: lidBounce 1s steps(2) infinite alternate;
+        }
+        @keyframes lidBounce {
+            0% { top: 8px; }
+            100% { top: 0px; }
+        }
+        .pixel-sparkle {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: #fffacd;
+            box-shadow: 0 0 4px #fffacd;
+            opacity: 0;
+        }
+        .pixel-sparkle-1 { top: 0; left: 50%; animation: sparkle 1.2s ease-in-out infinite; }
+        .pixel-sparkle-2 { top: 4px; left: 25%; animation: sparkle 1.2s ease-in-out infinite 0.4s; }
+        .pixel-sparkle-3 { top: 4px; left: 75%; animation: sparkle 1.2s ease-in-out infinite 0.8s; }
+        @keyframes sparkle {
+            0%, 100% { opacity: 0; transform: scale(0.5); }
+            50% { opacity: 1; transform: scale(1); }
+        }
     </style>
 </head>
 <body>
@@ -81,10 +140,15 @@
         <div class="fg" id="fg">
             <img class="bgimg" id="bg" src="gyro/bg.webp" alt="">
             <div class="bob" id="bob">
-                <img id="top" src="gyro/top.webp" style="left:237px;top:140px" alt="The game is on. Are you ready?">
-                <img id="b1" src="gyro/b1.webp" style="left:63px;top:909px" alt="Batch 1: 2/10/2026, 18.30 WIB, Pakuwon City Mall 3 Lt. P8, Jl. Kejawan Putih Mutiara 17, Surabaya">
-                <img id="b2" src="gyro/b2.webp" style="left:575px;top:921px" alt="Batch 2: 9/10/2026, 18.30 WIB, Pakuwon Mall Lt. Rooftop 2, Jl. Puncak Indah Lontar 2, Surabaya">
-                <img id="reg" src="gyro/reg.webp" style="left:319px;top:1320px" alt="Open registration: 16-27 September 2026 (via CG fun leaders and Treasure Hunt booth)">
+                <!-- each box = panel + its text on a separate, deeper layer -->
+                <img id="top" src="gyro/top.webp" style="left:237px;top:140px" alt="">
+                <img id="top-t" src="gyro/top-text.webp" style="left:319px;top:240px" alt="The game is on. Are you ready?">
+                <img id="b1" src="gyro/b1.webp" style="left:63px;top:909px" alt="">
+                <img id="b1-t" src="gyro/b1-text.webp" style="left:161px;top:988px" alt="Batch 1: 2/10/2026, 18.30 WIB, Pakuwon City Mall 3 Lt. P8, Jl. Kejawan Putih Mutiara 17, Surabaya">
+                <img id="b2" src="gyro/b2.webp" style="left:575px;top:921px" alt="">
+                <img id="b2-t" src="gyro/b2-text.webp" style="left:686px;top:1015px" alt="Batch 2: 9/10/2026, 18.30 WIB, Pakuwon Mall Lt. Rooftop 2, Jl. Puncak Indah Lontar 2, Surabaya">
+                <img id="reg" src="gyro/reg.webp" style="left:319px;top:1320px" alt="">
+                <img id="reg-t" src="gyro/reg-text.webp" style="left:400px;top:1372px" alt="Open registration: 16-27 September 2026 (via CG fun leaders and Treasure Hunt booth)">
                 <div class="L hg" id="hg">
                     <div class="face front">
                         <img src="gyro/heading.webp" alt="Treasure Hunt 5.0 — Into the game world">
@@ -110,7 +174,16 @@
             <div class="L stars" id="stars"></div>
         </div>
     </div>
-    <button id="tilt" hidden>TAP TO ENABLE TILT</button>
+    <button id="loader" disabled>
+        <span class="pixel-chest">
+            <span class="pixel-chest-lid"></span>
+            <span class="pixel-chest-body"></span>
+            <span class="pixel-sparkle pixel-sparkle-1"></span>
+            <span class="pixel-sparkle pixel-sparkle-2"></span>
+            <span class="pixel-sparkle pixel-sparkle-3"></span>
+        </span>
+        <span id="loader-msg">LOADING TREASURE…</span>
+    </button>
 
     <script>
     (function () {
@@ -130,9 +203,11 @@
         var TEXT_W = 543;
         var DIM = [[21,25],[27,30],[147,150],[153,156],[241,244],[247,250]];
 
+        var BOB_SCALE = .25; // calmer than the video: same timing, a quarter of the travel, around its average position (90)
         function bobAt(f) {
             var p = f / 3, i = Math.floor(p), t = p - i;
-            return BOB[i] + (BOB[(i + 1) % BOB.length] - BOB[i]) * t;
+            var raw = BOB[i] + (BOB[(i + 1) % BOB.length] - BOB[i]) * t;
+            return 90 + (raw - 90) * BOB_SCALE;
         }
         function spinAt(f) {
             var starts = [48, 187];
@@ -192,17 +267,9 @@
             tx = clamp((e.gamma - base.g) / 20);
             ty = clamp((e.beta - base.b) / 20);
         }
-        var tiltBtn = $('tilt');
-        if (window.DeviceOrientationEvent && typeof DeviceOrientationEvent.requestPermission === 'function') {
-            tiltBtn.hidden = false; // iOS needs a tap before it will share motion data
-            tiltBtn.onclick = function () {
-                DeviceOrientationEvent.requestPermission().then(function (state) {
-                    if (state === 'granted') window.addEventListener('deviceorientation', onOrient);
-                }).catch(function () {}).then(function () { tiltBtn.hidden = true; });
-            };
-        } else {
-            window.addEventListener('deviceorientation', onOrient);
-        }
+        // iOS only shares motion data after a permission prompt started by a tap (see enter()); Android starts right away
+        var needsPermission = window.DeviceOrientationEvent && typeof DeviceOrientationEvent.requestPermission === 'function';
+        if (!needsPermission) window.addEventListener('deviceorientation', onOrient);
         window.addEventListener('pointermove', function (e) {
             if (e.pointerType !== 'mouse') return;
             tx = clamp((e.clientX / innerWidth - .5) * 2);
@@ -211,7 +278,9 @@
 
         // ---- render ----
         var MAX = 36; // poster px of travel at depth 1
-        var layers = [[$('bg'), .2, 1.015], [$('top'), .55], [$('b1'), .7], [$('b2'), .7], [$('reg'), .8], [stars, 1.2]];
+        var TEXT_LIFT = .45; // box text floats this much deeper than its panel
+        var layers = [[$('bg'), .2, 1.015], [$('top'), .55], [$('b1'), .7], [$('b2'), .7], [$('reg'), .8],
+            [$('top-t'), .55 + TEXT_LIFT], [$('b1-t'), .7 + TEXT_LIFT], [$('b2-t'), .7 + TEXT_LIFT], [$('reg-t'), .8 + TEXT_LIFT], [stars, 1.2]];
         function render(f) {
             cx += (tx - cx) * .08; cy += (ty - cy) * .08;
             for (var i = 0; i < layers.length; i++) {
@@ -230,20 +299,33 @@
 
         var reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
         var imgs = [].slice.call(document.images);
-        var started = false;
-        function start() {
-            if (started) return;
-            started = true;
+        var loader = $('loader'), entered = false;
+        function onAssetsReady() {
+            if (!loader.disabled) return;
+            loader.disabled = false;
+            $('loader-msg').textContent = 'TAP TO ENTER';
+        }
+        function enter() {
+            if (entered) return;
+            entered = true;
+            // must run synchronously inside the tap, or iOS refuses to show the prompt
+            if (needsPermission) {
+                DeviceOrientationEvent.requestPermission().then(function (state) {
+                    if (state === 'granted') window.addEventListener('deviceorientation', onOrient);
+                }).catch(function () {});
+            }
+            loader.classList.add('gone');
             document.body.classList.add('ready');
             if (reduced) { render(45); return; }
-            var t0 = performance.now();
+            var t0 = performance.now(); // timeline starts at frame 0 so the typing begins as the poster appears
             (function loop(now) {
                 render(((now - t0) / 1000 * 30) % LOOP);
                 requestAnimationFrame(loop);
             })(t0);
         }
-        Promise.all(imgs.map(function (im) { return im.decode ? im.decode().catch(function () {}) : 0; })).then(start);
-        setTimeout(start, 4000); // never stay hidden if a decode stalls
+        loader.addEventListener('click', enter);
+        Promise.all(imgs.map(function (im) { return im.decode ? im.decode().catch(function () {}) : 0; })).then(onAssetsReady);
+        setTimeout(onAssetsReady, 4000); // never stay stuck on loading if a decode stalls
 
         window.__render = render; // used by the screenshot check
     })();
