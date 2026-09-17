@@ -32,7 +32,7 @@
         .fg { position: absolute; left: 0; top: 0; width: 1080px; height: 1920px; transform-origin: 0 0; perspective: 1600px; perspective-origin: 540px 960px; }
         .fg img, .L { position: absolute; display: block; will-change: transform; }
         .bgimg { left: 0; top: 0; width: 1080px; height: 1920px; }
-        .bob { position: absolute; inset: 0; transform-style: preserve-3d; }
+        .bob { position: absolute; inset: 0; }
 
         .hg { left: 7px; top: 437px; width: 1070px; height: 474px; transform-style: preserve-3d; transform-origin: 535px 236px; }
         .face { position: absolute; inset: 0; backface-visibility: hidden; -webkit-backface-visibility: hidden; }
@@ -280,10 +280,14 @@
         var MAX = 36; // poster px of travel at depth 1
         var Y_SCALE = 0.5; // vertical translation is more subtle than horizontal
         var TEXT_LIFT = .45; // box text floats this much deeper than its panel
-        var layers = [[$('bg'), .2, 1.015], [$('top'), .55], [$('b1'), .7], [$('b2'), .7], [$('reg'), .8],
+        var bgEl = $('bg');
+        var BG_ROT = 6; // degrees bg counter-rotates against tilt — subtler than hg's, it's a backdrop not the focal point
+        var layers = [[$('top'), .55], [$('b1'), .7], [$('b2'), .7], [$('reg'), .8],
             [$('top-t'), .55 + TEXT_LIFT], [$('b1-t'), .7 + TEXT_LIFT], [$('b2-t'), .7 + TEXT_LIFT], [$('reg-t'), .8 + TEXT_LIFT], [stars, 1.2]];
         function render(f) {
             cx += (tx - cx) * .08; cy += (ty - cy) * .08;
+            var bgD = .2 * MAX;
+            bgEl.style.transform = 'translate3d(' + (cx * bgD).toFixed(2) + 'px,' + (cy * bgD * Y_SCALE).toFixed(2) + 'px,0) rotateX(' + (cy * BG_ROT).toFixed(2) + 'deg) rotateY(' + (-cx * BG_ROT).toFixed(2) + 'deg) scale(1.03)';
             for (var i = 0; i < layers.length; i++) {
                 var L = layers[i], d = L[1] * MAX;
                 L[0].style.transform = 'translate3d(' + (cx * d).toFixed(2) + 'px,' + (cy * d * Y_SCALE).toFixed(2) + 'px,0)' + (L[2] ? ' scale(' + L[2] + ')' : '');
