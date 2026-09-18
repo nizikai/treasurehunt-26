@@ -1,63 +1,87 @@
 <!DOCTYPE html>
-<html lang="en" class="h-full overflow-hidden">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>AOG Treasure Hunt 2026</title>
     <meta name="description" content="AOG Treasure Hunt 2026.">
     <meta property="og:type" content="website">
     <meta property="og:title" content="AOG Treasure Hunt 2026">
     <meta property="og:description" content="AOG Treasure Hunt 2026.">
-    <meta property="og:image" content="video.mp4">
-    <meta name="twitter:card" content="summary_large_image">
-    <script src="https://cdn.tailwindcss.com"></script>
+    <meta name="theme-color" content="#776537">
     <style>
-        /* Smooth fade-in animation */
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
+        html, body { margin: 0; height: 100%; overflow: hidden; background: #0b0614; }
+        /* desktop: blurred poster behind the phone-shaped frame */
+        body::before {
+            content: ""; position: fixed; inset: -10%;
+            background: url(gyro/bg.webp) center / cover;
+            filter: blur(40px) brightness(.55);
         }
-        .animate-fade-in {
-            animation: fadeIn 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        .frame {
+            position: fixed; top: 0; bottom: 0; left: 50%;
+            width: min(100vw, calc(100vh * 9 / 16));
+            width: min(100vw, calc(100dvh * 9 / 16));
+            transform: translateX(-50%);
+            overflow: hidden;
+            background: #776537; /* exact top-row colour of the poster, fills tall phones */
+            opacity: 0; transition: opacity .6s;
         }
-        
-        /* Customize the main scrollbar to blend in better 
-           (Optional, but looks premium)
-        */
-        body::-webkit-scrollbar {
-            width: 10px;
+        .ready .frame { opacity: 1; }
+
+        /* everything below lives in 1080x1920 poster pixels, scaled by JS */
+        .fg { position: absolute; left: 0; top: 0; width: 1080px; height: 1920px; transform-origin: 0 0; perspective: 1600px; perspective-origin: 540px 960px; }
+        .fg img, .L { position: absolute; display: block; will-change: transform; }
+        .bgimg { left: 0; top: 0; width: 1080px; height: 1920px; }
+        .bob { position: absolute; inset: 0; }
+
+        .hg { left: 7px; top: 437px; width: 1070px; height: 474px; transform-style: preserve-3d; transform-origin: 535px 236px; }
+        .face { position: absolute; inset: 0; backface-visibility: hidden; -webkit-backface-visibility: hidden; }
+        .face.back { transform: translateZ(-40px) rotateY(180deg) scaleX(-1); }
+        .face img { position: absolute; left: 0; top: 0; }
+        .face .txt { left: 265px; top: 368px; }
+        .slab, .shine {
+            position: absolute; left: 0; top: 0; width: 1070px; height: 359px;
+            -webkit-mask: url(gyro/shape.webp) 0 0 / 100% 100%; mask: url(gyro/shape.webp) 0 0 / 100% 100%;
         }
-        body::-webkit-scrollbar-track {
-            background: #030712;
+        .slab { background: #1c038a; }
+        .shine {
+            background: linear-gradient(105deg, transparent 42%, rgba(255,255,255,.6) 50%, transparent 58%) no-repeat;
+            background-size: 300% 100%;
+            animation: shine 5s ease-in-out infinite;
         }
-        body::-webkit-scrollbar-thumb {
-            background: #374151;
-            border-radius: 5px;
-        }
-        body::-webkit-scrollbar-thumb:hover {
-            background: #4b5563;
+        @keyframes shine {
+            0% { background-position: 110% 0; }
+            30%, 100% { background-position: -10% 0; }
         }
 
-        html, body {
-            overscroll-behavior: none;
+        .stars { left: 0; top: 0; width: 1080px; height: 1920px; pointer-events: none; }
+        .star {
+            position: absolute; border-radius: 50%; opacity: 0;
+            background: radial-gradient(circle, #fff 0, rgba(255,255,255,.9) 22%, rgba(255,255,255,0) 68%);
+            animation: tw var(--d) ease-in-out var(--dl) infinite;
         }
-    </style>
-    <style>
-        /* Hide native video controls/UI */
-        video::-webkit-media-controls,
-        video::-webkit-media-controls-enclosure,
-        video::-webkit-media-controls-panel {
-            display: none !important;
-            -webkit-appearance: none;
-        }
-        video::-webkit-media-controls-overlay-play-button {
-            display: none !important;
-        }
-        video {
-            -webkit-appearance: none;
+        @keyframes tw {
+            0%, 100% { opacity: 0; transform: scale(.4); }
+            50% { opacity: var(--o); transform: scale(1); }
         }
 
-        /* Pixel-art treasure chest loader (16x16 grid using box-shadow pixels) */
+        /* tap-to-enter start screen; the tap is what lets iOS ask for motion permission */
+        #loader {
+            position: fixed; inset: 0; z-index: 50; width: 100%; margin: 0; padding: 0; border: 0;
+            display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px;
+            background: #000; color: inherit; cursor: pointer; transition: opacity .5s;
+            -webkit-tap-highlight-color: transparent;
+        }
+        #loader:disabled { cursor: default; }
+        #loader.gone { opacity: 0; pointer-events: none; }
+        #loader span { display: block; }
+        #loader-msg {
+            color: #eab308; font: 12px/16px ui-monospace, SFMono-Regular, Menlo, monospace; letter-spacing: .1em;
+            animation: pulse 2s cubic-bezier(.4, 0, .6, 1) infinite;
+        }
+        @keyframes pulse { 50% { opacity: .5; } }
+
+        /* Pixel-art treasure chest loader (same as index.html) */
         .pixel-chest {
             position: relative;
             width: 64px;
@@ -111,145 +135,209 @@
         }
     </style>
 </head>
-<body class="bg-gray-950 h-screen w-full overflow-hidden fixed inset-0 text-white">
-
-    <!-- 
-      BACKGROUND LAYER 
-      Changed to 'fixed' so it stays put while you scroll down the long image.
-    -->
-    <div class="fixed inset-0 z-0 overflow-hidden pointer-events-none">
-        <video 
-            id="bg-image"
-            src="video.mp4" 
-            autoplay muted loop playsinline preload="none"
-            class="w-full h-full object-cover filter blur-3xl opacity-40 scale-110 brightness-75"
-            onerror="this.style.display='none'"
-        ></video>
-        <!-- Darker overlay to make the main content pop more -->
-        <div class="absolute inset-0 bg-black/40 backdrop-blur-[2px]"></div>
-    </div>
-
-    <!-- 
-      MAIN CONTENT LAYER 
-      - Removed 'h-screen' to allow scrolling.
-      - 'py-0 md:py-12': No padding on mobile (full bleed), spacing on desktop.
-    -->
-    <!-- 
-      FULLSCREEN LOADER LAYER
-      Appears first, centered both axes, covers everything until video is ready.
-    -->
-    <div id="loader" class="fixed inset-0 z-50 flex items-center justify-center bg-black">
-        <div class="flex flex-col items-center gap-4">
-            <div class="pixel-chest">
-                <div class="pixel-chest-lid"></div>
-                <div class="pixel-chest-body"></div>
-                <div class="pixel-sparkle pixel-sparkle-1"></div>
-                <div class="pixel-sparkle pixel-sparkle-2"></div>
-                <div class="pixel-sparkle pixel-sparkle-3"></div>
-            </div>
-            <p class="text-yellow-500 text-xs tracking-widest animate-pulse font-mono">LOADING TREASURE…</p>
-        </div>
-    </div>
-
-    <main class="relative z-10 w-full h-screen overflow-hidden flex justify-center items-center">
-        
-        <!-- 
-          MAIN IMAGE CONTAINER
-          - 'w-full md:max-w-2xl': Full width on phone, restricted width on desktop (approx 672px).
-          - 'h-[100dvh]': locked to viewport height so the video never scrolls.
-        -->
-        <div class="relative w-full md:max-w-2xl h-full max-h-screen overflow-hidden group">
-            <video 
-                id="main-image"
-                src="video.mp4" 
-                muted loop playsinline preload="auto"
-                class="w-full h-full object-cover opacity-0 transition-opacity duration-700 shadow-[0_35px_60px_-15px_rgba(0,0,0,0.6)] rounded-none md:rounded-2xl border-0 md:border md:border-white/10"
-                onerror="handleImageError(this)"
-            ></video>
-
-            <!-- Loading Spinner: shown in the fullscreen #loader overlay above -->
-            <div id="loader-inline" class="hidden"></div>
-
-            <!-- Error Message Display -->
-            <div id="error-msg" class="hidden absolute inset-0 h-[50vh] flex items-center justify-center bg-gray-900/90 rounded-xl border border-red-500/50 p-6 text-center mx-4 mt-20">
-                <div>
-                    <svg class="w-12 h-12 text-red-500 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
-                    <h3 class="text-lg font-bold text-white mb-1">Image Not Found</h3>
-                    <p class="text-gray-400 text-sm">Could not load <code class="bg-black px-1 py-0.5 rounded text-yellow-500">video.mp4</code></p>
-                    <p class="text-gray-500 text-xs mt-2">Make sure this HTML file is in the same folder as your video.</p>
+<body>
+    <div class="frame" id="frame">
+        <div class="fg" id="fg">
+            <img class="bgimg" id="bg" src="gyro/bg.webp" alt="">
+            <div class="bob" id="bob">
+                <!-- each box = panel + its text on a separate, deeper layer -->
+                <img id="top" src="gyro/top.webp" style="left:237px;top:140px" alt="">
+                <img id="top-t" src="gyro/top-text.webp" style="left:331px;top:222px" alt="The game is on. Register now before the spots run out!">
+                <img id="b1" src="gyro/b1.webp" style="left:63px;top:909px" alt="">
+                <img id="b1-t" src="gyro/b1-text.webp" style="left:161px;top:988px" alt="Batch 1: 2/10/2026, 18.30 WIB, Pakuwon City Mall 3 Lt. P8, Jl. Kejawan Putih Mutiara 17, Surabaya">
+                <img id="b2" src="gyro/b2.webp" style="left:575px;top:921px" alt="">
+                <img id="b2-t" src="gyro/b2-text.webp" style="left:686px;top:1015px" alt="Batch 2: 9/10/2026, 18.30 WIB, Pakuwon Mall Lt. Rooftop 2, Jl. Puncak Indah Lontar 2, Surabaya">
+                <img id="reg" src="gyro/reg.webp" style="left:319px;top:1320px" alt="">
+                <img id="reg-t" src="gyro/reg-text.webp" style="left:400px;top:1372px" alt="Open registration: 16-27 September 2026 (via CG fun leaders and Treasure Hunt booth)">
+                <div class="L hg" id="hg">
+                    <div class="face front">
+                        <img src="gyro/heading.webp" alt="Treasure Hunt 5.0 — Into the game world">
+                        <img class="txt" src="gyro/text.webp" alt="">
+                        <div class="shine"></div>
+                    </div>
+                    <!-- extruded blue edge, visible while the heading spins -->
+                    <div class="slab" style="transform:translateZ(-4px)"></div>
+                    <div class="slab" style="transform:translateZ(-8px)"></div>
+                    <div class="slab" style="transform:translateZ(-12px)"></div>
+                    <div class="slab" style="transform:translateZ(-16px)"></div>
+                    <div class="slab" style="transform:translateZ(-20px)"></div>
+                    <div class="slab" style="transform:translateZ(-24px)"></div>
+                    <div class="slab" style="transform:translateZ(-28px)"></div>
+                    <div class="slab" style="transform:translateZ(-32px)"></div>
+                    <div class="slab" style="transform:translateZ(-36px)"></div>
+                    <div class="face back">
+                        <img src="gyro/heading.webp" alt="">
+                        <img class="txt" src="gyro/text.webp" alt="">
+                    </div>
                 </div>
             </div>
+            <div class="L stars" id="stars"></div>
         </div>
-        
-    </main>
+    </div>
+    <button id="loader" disabled>
+        <span class="pixel-chest">
+            <span class="pixel-chest-lid"></span>
+            <span class="pixel-chest-body"></span>
+            <span class="pixel-sparkle pixel-sparkle-1"></span>
+            <span class="pixel-sparkle pixel-sparkle-2"></span>
+            <span class="pixel-sparkle pixel-sparkle-3"></span>
+        </span>
+        <span id="loader-msg">LOADING TREASURE…</span>
+    </button>
 
     <script>
-        function handleImageError(img) {
-            img.style.display = 'none';
-            document.getElementById('error-msg').classList.remove('hidden');
-            document.getElementById('bg-image').style.display = 'none';
-            document.getElementById('loader').style.display = 'none';
+    (function () {
+        var $ = function (id) { return document.getElementById(id); };
+        var frame = $('frame'), fg = $('fg'), bob = $('bob'), hg = $('hg');
+        var txts = document.querySelectorAll('.txt');
+
+        // ---- timeline measured frame-by-frame from video-full.mp4 (30fps, 341-frame loop) ----
+        var LOOP = 341;
+        // vertical bob of the text group, sampled every 3 frames across the whole loop (the 3 cycles differ by a few px)
+        var BOB = [201,199,192,182,169,155,140,123,106,89,72,56,40,25,12,0,-10,-17,-21,-21,-18,-10,0,13,27,42,58,74,91,108,124,139,153,166,178,187,195,200,201,199,192,182,169,155,140,123,106,89,72,56,40,25,12,0,-10,-17,-21,-21,-18,-10,1,14,28,44,60,77,94,110,127,142,156,169,181,190,197,200,201,197,189,178,165,150,134,118,100,83,67,50,35,20,8,-3,-12,-18,-22,-21,-15,-7,5,18,33,49,66,83,99,116,132,147,161,173,184,192,198,201];
+        // 360° heading spin: starts at frames 48 and 187, lasts 52 frames, eased like the video
+        var SPIN_T = [0,.135,.23,.31,.365,.40,.44,.54,.615,.69,.77,.846,1];
+        var SPIN_A = [0,14,35,62,90,118,180,270,311,332,344,352,360];
+        // right edge (px in text.webp) of each of the 16 letters of INTO THE GAME WORLD
+        var ENDS = [35,72,99,130,166,195,219,262,293,329,353,409,438,465,489,516];
+        var TEXT_W = 543;
+        var DIM = [[21,25],[27,30],[147,150],[153,156],[241,244],[247,250]];
+
+        var BOB_SCALE = .25; // calmer than the video: same timing, a quarter of the travel, around its average position (90)
+        function bobAt(f) {
+            var p = f / 3, i = Math.floor(p), t = p - i;
+            var raw = BOB[i] + (BOB[(i + 1) % BOB.length] - BOB[i]) * t;
+            return 90 + (raw - 90) * BOB_SCALE;
         }
-
-        // Show the video only once it's actually ready to play, then hide the loader.
-        (function() {
-            var main = document.getElementById('main-image');
-            var loader = document.getElementById('loader');
-            var revealed = false;
-            function reveal() {
-                if (revealed) return;
-                revealed = true;
-                main.classList.remove('opacity-0');
-                main.play().catch(function(){ /* will retry on first interaction */ });
-                if (loader) loader.style.display = 'none';
-            }
-            main.addEventListener('canplaythrough', reveal);
-            main.addEventListener('canplay', reveal);
-            main.addEventListener('loadeddata', reveal);
-            main.addEventListener('error', function(){ if (loader) loader.style.display = 'none'; });
-            // Safety: never show the spinner forever
-            setTimeout(reveal, 8000);
-        })();
-
-        // Detect slow connections and skip the background video to save bandwidth
-        (function() {
-            var conn = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
-            var bg = document.getElementById('bg-image');
-            if (!conn || !bg) return;
-            var slow = (conn.effectiveType === 'slow-2g' || conn.effectiveType === '2g' ||
-                        (conn.downlink && conn.downlink < 1) || (conn.saveData));
-            if (slow) {
-                bg.removeAttribute('src');
-                bg.style.display = 'none';
-            }
-        })();
-
-        // Explicitly start both videos on load (guards against browsers blocking autoplay)
-        function startVideos() {
-            ['main-image', 'bg-image'].forEach(function(id) {
-                var v = document.getElementById(id);
-                if (v && v.src) {
-                    v.muted = true;
-                    v.loop = true;
-                    v.play().catch(function(){ /* will retry on first user interaction */ });
+        function spinAt(f) {
+            var starts = [48, 187];
+            for (var s = 0; s < 2; s++) {
+                var t = (f - starts[s]) / 52;
+                if (t > 0 && t < 1) {
+                    var i = 1; while (SPIN_T[i] < t) i++;
+                    var u = (t - SPIN_T[i - 1]) / (SPIN_T[i] - SPIN_T[i - 1]);
+                    return -(SPIN_A[i - 1] + (SPIN_A[i] - SPIN_A[i - 1]) * u);
                 }
-            });
-            // Load the background video only after the main one is ready (saves bandwidth on slow connections)
-            var bg = document.getElementById('bg-image');
-            var main = document.getElementById('main-image');
-            if (bg && main) {
-                main.addEventListener('canplay', function() {
-                    if (bg.dataset.loaded !== '1' && bg.getAttribute('src')) {
-                        bg.dataset.loaded = '1';
-                        bg.load();
-                    }
-                });
+            }
+            return 0;
+        }
+        function lettersAt(f) {
+            if (f < 17) return Math.min(16, Math.floor(f));
+            if (f < 97) return 16;
+            if (f < 107) return Math.round(16 * (107 - f) / 10); // backspace
+            if (f < 128) return 0;
+            if (f < 145) return Math.min(16, Math.floor(f - 128));
+            if (f < 311) return 16;
+            if (f < 321) return Math.round(16 * (321 - f) / 10);
+            return 0;
+        }
+
+        // ---- layout: poster fills the width, anchored to the bottom; extra height shows the flat top colour ----
+        var s = 1;
+        function layout() {
+            var fw = frame.clientWidth, fh = frame.clientHeight;
+            var contain = Math.min(fw / 1080, fh / 1920), cover = Math.max(fw / 1080, fh / 1920);
+            // up to 5% zoom past fit (side crop ~26 poster px, heading starts at 58) to shrink the empty top band on tall phones
+            s = Math.min(cover, contain * 1.05);
+            var left = (fw - 1080 * s) / 2, top = fh - 1920 * s;
+            fg.style.transform = 'translate(' + left + 'px,' + top + 'px) scale(' + s + ')';
+        }
+        window.addEventListener('resize', layout);
+        layout();
+
+        // ---- twinkling stars / bokeh like the video ----
+        var stars = $('stars');
+        for (var n = 0; n < 26; n++) {
+            var big = n < 8, el = document.createElement('i'), size = big ? 30 + Math.random() * 30 : 6 + Math.random() * 8;
+            el.className = 'star';
+            el.style.cssText = 'left:' + (Math.random() * 1040) + 'px;top:' + (80 + Math.random() * 1500) + 'px;width:' + size + 'px;height:' + size +
+                'px;--d:' + (2.5 + Math.random() * 3).toFixed(2) + 's;--dl:-' + (Math.random() * 5).toFixed(2) + 's;--o:' + (big ? .85 : 1);
+            stars.appendChild(el);
+        }
+
+        // ---- tilt input: gyro on phones, mouse on desktop ----
+        var tx = 0, ty = 0, cx = 0, cy = 0, base = null;
+        var clamp = function (v) { return Math.max(-1, Math.min(1, v)); };
+        function onOrient(e) {
+            if (e.beta == null) return;
+            if (!base) base = { b: e.beta, g: e.gamma };
+            // ponytail: neutral pose slowly follows how the phone is held (~8s), so the effect re-centres itself
+            base.b += (e.beta - base.b) * 0.002;
+            base.g += (e.gamma - base.g) * 0.002;
+            tx = clamp((e.gamma - base.g) / 12);
+            ty = clamp((e.beta - base.b) / 12);
+        }
+        // iOS only shares motion data after a permission prompt started by a tap (see enter()); Android starts right away
+        var needsPermission = window.DeviceOrientationEvent && typeof DeviceOrientationEvent.requestPermission === 'function';
+        if (!needsPermission) window.addEventListener('deviceorientation', onOrient);
+        window.addEventListener('pointermove', function (e) {
+            if (e.pointerType !== 'mouse') return;
+            tx = clamp((e.clientX / innerWidth - .5) * 2);
+            ty = clamp((e.clientY / innerHeight - .5) * 2);
+        });
+
+        // ---- render ----
+        var MAX = 36; // poster px of travel at depth 1
+        var Y_SCALE = 0.5; // vertical translation is more subtle than horizontal
+        var TEXT_LIFT = .45; // box text floats this much deeper than its panel
+        var bgEl = $('bg');
+        var BG_ROT = 6; // degrees bg counter-rotates against tilt — subtler than hg's, it's a backdrop not the focal point
+        var layers = [[$('top'), .55], [$('b1'), .7], [$('b2'), .7], [$('reg'), .8],
+            [$('top-t'), .55 + TEXT_LIFT], [$('b1-t'), .7 + TEXT_LIFT], [$('b2-t'), .7 + TEXT_LIFT], [$('reg-t'), .8 + TEXT_LIFT], [stars, 1.2]];
+        function render(f) {
+            cx += (tx - cx) * .08; cy += (ty - cy) * .08;
+            var bgD = .2 * MAX;
+            bgEl.style.transform = 'translate3d(' + (cx * bgD).toFixed(2) + 'px,' + (cy * bgD * Y_SCALE).toFixed(2) + 'px,0) rotateX(' + (cy * BG_ROT).toFixed(2) + 'deg) rotateY(' + (-cx * BG_ROT).toFixed(2) + 'deg) scale(1.03)';
+            for (var i = 0; i < layers.length; i++) {
+                var L = layers[i], d = L[1] * MAX;
+                L[0].style.transform = 'translate3d(' + (cx * d).toFixed(2) + 'px,' + (cy * d * Y_SCALE).toFixed(2) + 'px,0)' + (L[2] ? ' scale(' + L[2] + ')' : '');
+            }
+            bob.style.transform = 'translateY(' + bobAt(f).toFixed(2) + 'px)';
+            hg.style.transform = 'translate3d(' + (cx * MAX).toFixed(2) + 'px,' + (cy * MAX * Y_SCALE).toFixed(2) + 'px,0) rotateX(' + (-cy * 10).toFixed(2) + 'deg) rotateY(' + (spinAt(f) + cx * 14).toFixed(2) + 'deg)';
+            var k = lettersAt(f), x = k ? ENDS[k - 1] + 3 : 0, dim = false;
+            for (var j = 0; j < DIM.length; j++) if (f >= DIM[j][0] && f < DIM[j][1]) dim = true;
+            for (var t = 0; t < txts.length; t++) {
+                txts[t].style.clipPath = 'inset(0 ' + (TEXT_W - x) + 'px 0 0)';
+                txts[t].style.opacity = dim ? .35 : 1;
             }
         }
-        window.addEventListener('load', startVideos);
-        // Safety net: if autoplay was blocked, start on first interaction
-        window.addEventListener('click', startVideos, { once: true });
-        window.addEventListener('touchstart', startVideos, { once: true });
+
+        var reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+        var imgs = [].slice.call(document.images);
+        var loader = $('loader'), entered = false;
+        function onAssetsReady() {
+            if (needsPermission) {
+                if (!loader.disabled) return;
+                loader.disabled = false;
+                $('loader-msg').textContent = 'TAP TO ENTER';
+            } else {
+                enter();
+            }
+        }
+        function enter() {
+            if (entered) return;
+            entered = true;
+            // must run synchronously inside the tap, or iOS refuses to show the prompt
+            if (needsPermission) {
+                DeviceOrientationEvent.requestPermission().then(function (state) {
+                    if (state === 'granted') window.addEventListener('deviceorientation', onOrient);
+                }).catch(function () {});
+            }
+            loader.classList.add('gone');
+            document.body.classList.add('ready');
+            if (reduced) { render(45); return; }
+            var t0 = performance.now(); // timeline starts at frame 0 so the typing begins as the poster appears
+            (function loop(now) {
+                render(((now - t0) / 1000 * 30) % LOOP);
+                requestAnimationFrame(loop);
+            })(t0);
+        }
+        loader.addEventListener('click', enter);
+        Promise.all(imgs.map(function (im) { return im.decode ? im.decode().catch(function () {}) : 0; })).then(onAssetsReady);
+        setTimeout(onAssetsReady, 4000); // never stay stuck on loading if a decode stalls
+
+        window.__render = render; // used by the screenshot check
+    })();
     </script>
 </body>
 </html>

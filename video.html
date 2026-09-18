@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full overflow-hidden">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AOG Treasure Hunt 2026</title>
+    <meta name="description" content="AOG Treasure Hunt 2026.">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="AOG Treasure Hunt 2026">
+    <meta property="og:description" content="AOG Treasure Hunt 2026.">
+    <meta property="og:image" content="video.mp4">
+    <meta name="twitter:card" content="summary_large_image">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Smooth fade-in animation */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fade-in {
+            animation: fadeIn 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+        
+        /* Customize the main scrollbar to blend in better 
+           (Optional, but looks premium)
+        */
+        body::-webkit-scrollbar {
+            width: 10px;
+        }
+        body::-webkit-scrollbar-track {
+            background: #030712;
+        }
+        body::-webkit-scrollbar-thumb {
+            background: #374151;
+            border-radius: 5px;
+        }
+        body::-webkit-scrollbar-thumb:hover {
+            background: #4b5563;
+        }
+
+        html, body {
+            overscroll-behavior: none;
+        }
+    </style>
+    <style>
+        /* Hide native video controls/UI */
+        video::-webkit-media-controls,
+        video::-webkit-media-controls-enclosure,
+        video::-webkit-media-controls-panel {
+            display: none !important;
+            -webkit-appearance: none;
+        }
+        video::-webkit-media-controls-overlay-play-button {
+            display: none !important;
+        }
+        video {
+            -webkit-appearance: none;
+        }
+
+        /* Pixel-art treasure chest loader (16x16 grid using box-shadow pixels) */
+        .pixel-chest {
+            position: relative;
+            width: 64px;
+            height: 64px;
+            image-rendering: pixelated;
+            image-rendering: crisp-edges;
+        }
+        .pixel-chest-lid,
+        .pixel-chest-body {
+            position: absolute;
+            left: 0;
+            width: 4px;
+            height: 4px;
+            background: transparent;
+            box-shadow:
+                /* LID (top arc, gold/brown) */
+                8px 4px 0 #b8860b, 12px 4px 0 #b8860b, 16px 4px 0 #b8860b, 20px 4px 0 #b8860b, 24px 4px 0 #b8860b, 28px 4px 0 #b8860b, 32px 4px 0 #b8860b, 36px 4px 0 #b8860b, 40px 4px 0 #b8860b, 44px 4px 0 #b8860b, 48px 4px 0 #b8860b,
+                4px 8px 0 #8b6508, 8px 8px 0 #ffd700, 12px 8px 0 #ffd700, 16px 8px 0 #ffd700, 20px 8px 0 #ffd700, 24px 8px 0 #ffd700, 28px 8px 0 #ffd700, 32px 8px 0 #ffd700, 36px 8px 0 #ffd700, 40px 8px 0 #ffd700, 44px 8px 0 #ffd700, 48px 8px 0 #ffd700, 52px 8px 0 #8b6508;
+        }
+        .pixel-chest-body {
+            top: 28px;
+            box-shadow:
+                /* BODY (wood with gold band) */
+                4px 0 0 #5a3a1a, 8px 0 0 #8b5a2b, 12px 0 0 #8b5a2b, 16px 0 0 #8b5a2b, 20px 0 0 #8b5a2b, 24px 0 0 #8b5a2b, 28px 0 0 #8b5a2b, 32px 0 0 #8b5a2b, 36px 0 0 #8b5a2b, 40px 0 0 #8b5a2b, 44px 0 0 #8b5a2b, 48px 0 0 #8b5a2b, 52px 0 0 #5a3a1a,
+                4px 4px 0 #5a3a1a, 8px 4px 0 #ffd700, 12px 4px 0 #ffd700, 16px 4px 0 #ffd700, 20px 4px 0 #ffd700, 24px 4px 0 #ffd700, 28px 4px 0 #ffd700, 32px 4px 0 #ffd700, 36px 4px 0 #ffd700, 40px 4px 0 #ffd700, 44px 4px 0 #ffd700, 48px 4px 0 #ffd700, 52px 4px 0 #5a3a1a,
+                4px 8px 0 #5a3a1a, 8px 8px 0 #8b5a2b, 48px 8px 0 #8b5a2b, 52px 8px 0 #5a3a1a,
+                4px 12px 0 #5a3a1a, 8px 12px 0 #8b5a2b, 48px 12px 0 #8b5a2b, 52px 12px 0 #5a3a1a;
+        }
+        .pixel-chest-lid {
+            top: 8px;
+            animation: lidBounce 1s steps(2) infinite alternate;
+        }
+        @keyframes lidBounce {
+            0% { top: 8px; }
+            100% { top: 0px; }
+        }
+        .pixel-sparkle {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: #fffacd;
+            box-shadow: 0 0 4px #fffacd;
+            opacity: 0;
+        }
+        .pixel-sparkle-1 { top: 0; left: 50%; animation: sparkle 1.2s ease-in-out infinite; }
+        .pixel-sparkle-2 { top: 4px; left: 25%; animation: sparkle 1.2s ease-in-out infinite 0.4s; }
+        .pixel-sparkle-3 { top: 4px; left: 75%; animation: sparkle 1.2s ease-in-out infinite 0.8s; }
+        @keyframes sparkle {
+            0%, 100% { opacity: 0; transform: scale(0.5); }
+            50% { opacity: 1; transform: scale(1); }
+        }
+    </style>
+</head>
+<body class="bg-gray-950 h-screen w-full overflow-hidden fixed inset-0 text-white">
+
+    <!-- 
+      BACKGROUND LAYER 
+      Changed to 'fixed' so it stays put while you scroll down the long image.
+    -->
+    <div class="fixed inset-0 z-0 overflow-hidden pointer-events-none">
+        <video 
+            id="bg-image"
+            src="video.mp4" 
+            autoplay muted loop playsinline preload="none"
+            class="w-full h-full object-cover filter blur-3xl opacity-40 scale-110 brightness-75"
+            onerror="this.style.display='none'"
+        ></video>
+        <!-- Darker overlay to make the main content pop more -->
+        <div class="absolute inset-0 bg-black/40 backdrop-blur-[2px]"></div>
+    </div>
+
+    <!-- 
+      MAIN CONTENT LAYER 
+      - Removed 'h-screen' to allow scrolling.
+      - 'py-0 md:py-12': No padding on mobile (full bleed), spacing on desktop.
+    -->
+    <!-- 
+      FULLSCREEN LOADER LAYER
+      Appears first, centered both axes, covers everything until video is ready.
+    -->
+    <div id="loader" class="fixed inset-0 z-50 flex items-center justify-center bg-black">
+        <div class="flex flex-col items-center gap-4">
+            <div class="pixel-chest">
+                <div class="pixel-chest-lid"></div>
+                <div class="pixel-chest-body"></div>
+                <div class="pixel-sparkle pixel-sparkle-1"></div>
+                <div class="pixel-sparkle pixel-sparkle-2"></div>
+                <div class="pixel-sparkle pixel-sparkle-3"></div>
+            </div>
+            <p class="text-yellow-500 text-xs tracking-widest animate-pulse font-mono">LOADING TREASURE…</p>
+        </div>
+    </div>
+
+    <main class="relative z-10 w-full h-screen overflow-hidden flex justify-center items-center">
+        
+        <!-- 
+          MAIN IMAGE CONTAINER
+          - 'w-full md:max-w-2xl': Full width on phone, restricted width on desktop (approx 672px).
+          - 'h-[100dvh]': locked to viewport height so the video never scrolls.
+        -->
+        <div class="relative w-full md:max-w-2xl h-full max-h-screen overflow-hidden group">
+            <video 
+                id="main-image"
+                src="video.mp4" 
+                muted loop playsinline preload="auto"
+                class="w-full h-full object-cover opacity-0 transition-opacity duration-700 shadow-[0_35px_60px_-15px_rgba(0,0,0,0.6)] rounded-none md:rounded-2xl border-0 md:border md:border-white/10"
+                onerror="handleImageError(this)"
+            ></video>
+
+            <!-- Loading Spinner: shown in the fullscreen #loader overlay above -->
+            <div id="loader-inline" class="hidden"></div>
+
+            <!-- Error Message Display -->
+            <div id="error-msg" class="hidden absolute inset-0 h-[50vh] flex items-center justify-center bg-gray-900/90 rounded-xl border border-red-500/50 p-6 text-center mx-4 mt-20">
+                <div>
+                    <svg class="w-12 h-12 text-red-500 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+                    <h3 class="text-lg font-bold text-white mb-1">Image Not Found</h3>
+                    <p class="text-gray-400 text-sm">Could not load <code class="bg-black px-1 py-0.5 rounded text-yellow-500">video.mp4</code></p>
+                    <p class="text-gray-500 text-xs mt-2">Make sure this HTML file is in the same folder as your video.</p>
+                </div>
+            </div>
+        </div>
+        
+    </main>
+
+    <script>
+        function handleImageError(img) {
+            img.style.display = 'none';
+            document.getElementById('error-msg').classList.remove('hidden');
+            document.getElementById('bg-image').style.display = 'none';
+            document.getElementById('loader').style.display = 'none';
+        }
+
+        // Show the video only once it's actually ready to play, then hide the loader.
+        (function() {
+            var main = document.getElementById('main-image');
+            var loader = document.getElementById('loader');
+            var revealed = false;
+            function reveal() {
+                if (revealed) return;
+                revealed = true;
+                main.classList.remove('opacity-0');
+                main.play().catch(function(){ /* will retry on first interaction */ });
+                if (loader) loader.style.display = 'none';
+            }
+            main.addEventListener('canplaythrough', reveal);
+            main.addEventListener('canplay', reveal);
+            main.addEventListener('loadeddata', reveal);
+            main.addEventListener('error', function(){ if (loader) loader.style.display = 'none'; });
+            // Safety: never show the spinner forever
+            setTimeout(reveal, 8000);
+        })();
+
+        // Detect slow connections and skip the background video to save bandwidth
+        (function() {
+            var conn = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+            var bg = document.getElementById('bg-image');
+            if (!conn || !bg) return;
+            var slow = (conn.effectiveType === 'slow-2g' || conn.effectiveType === '2g' ||
+                        (conn.downlink && conn.downlink < 1) || (conn.saveData));
+            if (slow) {
+                bg.removeAttribute('src');
+                bg.style.display = 'none';
+            }
+        })();
+
+        // Explicitly start both videos on load (guards against browsers blocking autoplay)
+        function startVideos() {
+            ['main-image', 'bg-image'].forEach(function(id) {
+                var v = document.getElementById(id);
+                if (v && v.src) {
+                    v.muted = true;
+                    v.loop = true;
+                    v.play().catch(function(){ /* will retry on first user interaction */ });
+                }
+            });
+            // Load the background video only after the main one is ready (saves bandwidth on slow connections)
+            var bg = document.getElementById('bg-image');
+            var main = document.getElementById('main-image');
+            if (bg && main) {
+                main.addEventListener('canplay', function() {
+                    if (bg.dataset.loaded !== '1' && bg.getAttribute('src')) {
+                        bg.dataset.loaded = '1';
+                        bg.load();
+                    }
+                });
+            }
+        }
+        window.addEventListener('load', startVideos);
+        // Safety net: if autoplay was blocked, start on first interaction
+        window.addEventListener('click', startVideos, { once: true });
+        window.addEventListener('touchstart', startVideos, { once: true });
+    </script>
+</body>
+</html>
